@@ -4,12 +4,13 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-import config
+import config_base
 
 
 class ScrapeMoviesService:
 
     url = "https://www.imdb.com/chart/top"
+    count_tags = 250
 
     def get_top_movies(self):
         response = requests.get(self.url)
@@ -19,7 +20,7 @@ class ScrapeMoviesService:
         title_tags = soup.find_all('td', class_="titleColumn")
         rating_tags = soup.find_all('td', class_="ratingColumn imdbRating")
 
-        assert len(poster_tags) == len(title_tags) == len(rating_tags) == 250, "Error occurred while scraping "
+        assert len(poster_tags) == len(title_tags) == len(rating_tags) == self.count_tags, "Error occurred while scraping "  # noqa
 
         results = []
         for i in range(len(poster_tags)):
@@ -38,7 +39,6 @@ class ScrapeMoviesService:
             )
         return results
 
-
     def parse_poster_image(self, tag):
         return tag.find('img')['src']
 
@@ -48,15 +48,30 @@ class ScrapeMoviesService:
     def parse_year(self, tag):
         return int(tag.find('span').text[1:-1])
 
-
     def parse_rating(self, tag):
+        try:
+            float(tag.find('strong').text)
+        except AttributeError:
+            return 0.0
         return float(tag.find('strong').text)
 
 
-if __name__ == "__main__":
-    service = ScrapeMoviesService()
-    top_movies = service.get_top_movies()
+class ScrapeTvShowsService(ScrapeMoviesService):
 
-    df = pd.DataFrame.from_dict(top_movies)
-    output_file_path = Path(config.basedir) / 'movies.csv'
-    df.to_csv(Path(output_file_path))
+    url = "https://www.imdb.com/chart/tvmeter"
+    count_tags = 100
+
+
+if __name__ == "__main__":
+    service_movies = ScrapeMoviesService()
+    service_shows = ScrapeTvShowsService()
+    top_movies = service_movies.get_top_movies()
+    top_shows = service_shows.get_top_movies()
+
+    df_movies = pd.DataFrame.from_dict(top_movies)
+    output_file_path_movies = Path(config_base.basedir) / 'movies.csv'
+    df_movies.to_csv(Path(output_file_path_movies))
+
+    df_shows = pd.DataFrame.from_dict(top_shows)
+    output_file_path_shows = Path(config_base.basedir) / 'shows.csv'
+    df_shows.to_csv(Path(output_file_path_shows))
