@@ -13,14 +13,14 @@
     </tr>
   </thead>
   <tbody>
-    {% for movie in movies %}
+    {% for show in shows %}
     <tr>
       <th scope="row">
-          <img src="{{ movie.poster_image }}" alt="" >
+          <img src="{{ show.poster_image }}" alt="" >
       </th>
-      <td>{{ movie.title }}</td>
-      <td>{{ movie.year }}</td>
-      <td>{{ movie.rating }}</td>
+      <td>{{ show.title }}</td>
+      <td>{{ show.year }}</td>
+      <td>{{ show.rating }}</td>
     </tr>
     {% endfor %}
 
